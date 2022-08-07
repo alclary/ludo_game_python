@@ -18,8 +18,8 @@ class Player:
         self._start = start_end[player_letter][0]
         self._end = start_end[player_letter][1]
         self._position = {
-            'p':-1,
-            'q':-1
+            'p':[-1,False],
+            'q':[-1,False]
         }
         self._state = None # PLAYING or FINISHED
         self._stacked = False # T or F if tokens stacked
@@ -30,9 +30,9 @@ class Player:
 
     def set_token(self, token, current_pos):
         if token == 'p':
-            self._position['p'] = current_pos
+            self._position['p'][0] = current_pos
         elif token == 'q':
-            self._position['q'] = current_pos
+            self._position['q'][0] = current_pos
 
     def get_token(self, token):
         if token == 'p':
@@ -40,7 +40,19 @@ class Player:
         elif token == 'q':
             return self.get_token_q_step_count()
 
-    def get_stacked(self):
+    def is_homerow(self, token):
+        if token == 'p':
+            return self._position['p'][1]
+        elif token == 'q':
+            return self._position['q'][1]
+
+    def set_homerow(self, token, is_homerow):
+        if token == 'p':
+            self._position['p'][1] = is_homerow
+        elif token == 'q':
+            self._position['q'][1] = is_homerow
+
+    def is_stacked(self):
         return self._stacked
 
     def set_stacked(self, bool_val):
@@ -50,12 +62,12 @@ class Player:
         # takes no parameters and returns the total steps the token p has taken on the board (use
         # steps = -1 for home yard current_pos and steps = 0 for ready to go current_pos) The total step
         # should not be larger than 57.
-        return self._position['p']
+        return self._position['p'][0]
 
     def get_token_q_step_count(self):
         # takes no parameters and returns the total steps the token q has taken on the board (use
         # steps = -1 for home yard current_pos and steps = 0 for ready to go current_pos)
-        return self._position['q']
+        return self._position['q'][0]
 
     def get_start(self):
         return self._start
@@ -124,8 +136,6 @@ class LudoGame:
                     player.get_token_q_step_count() == current_pos):
                 return player
 
-
-
     def move_token(self, player, token, steps):
         # method will take care of one token moving on the board. It will also update the token’s
         # total steps, and it will take care of kicking out other opponent tokens as needed. The
@@ -134,6 +144,7 @@ class LudoGame:
         current_pos = player.get_token(token)
         start = player.get_start()
         end = player.get_end()
+        finish = end + 7
 
         # 1. Move token (update player)
         if current_pos == -1:
@@ -142,62 +153,90 @@ class LudoGame:
 
         elif current_pos == 0:
             new_pos = (start + steps) - 1
-            self.handle_collision(player, new_pos)
+            self.handle_kick(player, new_pos)
+            self.handle_stack(player, token, new_pos)
             player.set_token(token, new_pos)
 
         elif current_pos in range(end + 1, end + 6):
             new_pos = None
-            if current_pos + steps == 57:
-                new_pos = 57
-            elif current_pos + steps < 57:
+            if current_pos + steps == finish:
+                new_pos = finish
+            elif current_pos + steps < finish:
                 new_pos = current_pos + steps
-            elif current_pos + steps > 57:
-                new_pos = (57 - (current_pos + steps)) + 57
+            elif current_pos + steps > finish:
+                new_pos = (finish - (current_pos + steps)) + finish
 
-            if player.get_stacked is True:
+            if player.is_stacked():
                 player.set_token(token, new_pos)
                 player.set_token(self.other_token(token), new_pos)
             else:
                 player.set_token(token, new_pos)
+
+        elif current_pos + steps in range(end + 1, end + 6):
+            new_pos = current_pos + steps
+            if player.is_stacked():
+                player.set_homerow(token, True)
+                player.set_token(self.other_token(token), new_pos)
+            else:
+                self.handle_stack(player, token, new_pos)
+
+            player.set_token(token, new_pos)
 
         else:
             new_pos = current_pos + steps
-            self.handle_collision(player, new_pos)
-            if player.get_stacked() is True:
+            self.handle_kick(player, new_pos)
+            if player.is_stacked() is True:
                 player.set_token(token, new_pos)
                 player.set_token(self.other_token(token), new_pos)
             else:
+                self.handle_stack(player, token, new_pos)
                 player.set_token(token, new_pos)
 
         self.check_finished()
 
-    def handle_collision(self, initiator, current_pos):
-        collision = {
-            'player': None,
-            'token': ""
-        }
+    # def handle_collision(self, initiator, current_pos):
+    #     collision = {
+    #         'player': None,
+    #         'token': ""
+    #     }
 
-        for player in self._active_players.values():
-            if player.get_token_p_step_count() == current_pos:
-                collision['token'] = 'p'
-                if player is initiator:
-                    collision['player'] = initiator
-                else:
-                    collision['player'] = player
-            elif player.get_token_q_step_count() == current_pos:
-                collision['token'] = 'q'
-                if player is initiator:
-                    collision['player'] = initiator
-                else:
-                    collision['player'] = player
+    #     for player in self._active_players.values():
+    #         if player.get_token_p_step_count() == current_pos:
+    #             collision['token'] = 'p'
+    #             if player is initiator:
+    #                 collision['player'] = initiator
+    #             else:
+    #                 collision['player'] = player
+    #         elif player.get_token_q_step_count() == current_pos:
+    #             collision['token'] = 'q'
+    #             if player is initiator:
+    #                 collision['player'] = initiator
+    #             else:
+    #                 collision['player'] = player
 
-        if collision['player'] is initiator: # If player collides with own token, stack
+    #     if collision['player'] is initiator: # If player collides with own token, stack
+    #         initiator.set_stacked(True)
+    #     elif collision['player'] is not None: # If player collides with opponent token, kick it back
+    #         collision['player'].set_token(collision['token'], -1)
+    #         if collision['player'].is_stacked() is True:
+    #             collision['player'].set_stacked(False)
+    #             collision['player'].set_token(self.other_token(collision['token']), -1)
+    def handle_stack(self, initiator, token, new_pos):
+        if initiator.get_token(self.other_token(token)) == new_pos:
             initiator.set_stacked(True)
-        elif collision['player'] is not None: # If player collides with opponent token, kick it back
-            collision['player'].set_token(collision['token'], -1)
-            if collision['player'].get_stacked() is True:
-                collision['player'].set_stacked(False)
-                collision['player'].set_token(self.other_token(collision['token']), -1)
+        return
+
+    def handle_kick(self, initiator, new_pos):
+        for player in self._active_players.values():
+            if player is not initiator and player.get_token('p') == new_pos:
+                if player.is_stacked():
+                    player.set_token('p', -1)
+                    player.set_token('q', -1)
+                else:
+                    player.set_token('p', -1)
+            elif player is not initiator and player.get_token('q') == new_pos:
+                player.set_token('q', -1)
+        return
 
     def other_token(self, token):
         if token == 'p':
@@ -275,7 +314,7 @@ class LudoGame:
 
         # TOKEN PRIORITY LOGIC
         # 1. If die roll is 6, try to let the token that still in home yard get out of yard (p first if both)
-        if player.get_stacked() is True:
+        if player.is_stacked() is True:
             return 'p'
         elif (dice_roll == 6 and
             (token_p == -1 or
