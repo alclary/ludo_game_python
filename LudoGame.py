@@ -110,23 +110,9 @@ class LudoGame:
             'F': 57,
             }
 
-    def get_player_by_position(self, current_pos):
-        # takes a parameter representing the player's current_pos as a string and returns
-        #   the player object. For an invalid string parameter, it will return "Player not found!"
-
-        # Logic to convert validate strings and convert to int current_pos
-
-        if current_pos in self._active_players:
-            return self._active_players[current_pos]               # Shortcut to player obj via letter (A,B,C,D)
-        elif current_pos in self._pos_key.keys():
-            current_pos = self._pos_key[current_pos]
-        elif (current_pos[0] in self._active_players.keys() and    # Check letter char is valid
-                int(current_pos[1]) in range(1,6) and              # Check that number is valid
-                len(current_pos) == 2):                            # Check that home space pos are only 2 chars
-            current_pos = 50 + int(current_pos[1])
-        elif (isinstance(int(current_pos), int) and
-                int(current_pos) in range(1,56)):
-            current_pos = int(current_pos)
+    def get_player_by_position(self, letter):
+        if letter in self._active_players.keys():
+            return self._active_players[letter]   # Shortcut to player obj via letter (A,B,C,D)
         else:
             return "Player not found!"
 
