@@ -119,12 +119,6 @@ class LudoGame:
         else:
             return "Player not found!"
 
-        # Loop through active players and check if a player holds the specified current_pos
-        for player in self._active_players.values():
-            if (player.get_token_p_step_count() == current_pos or
-                    player.get_token_q_step_count() == current_pos):
-                return player
-
     def move_token(self, player, token, steps):
         # method will take care of one token moving on the board. It will also update the token’s
         # total steps, and it will take care of kicking out other opponent tokens as needed. The
@@ -277,6 +271,8 @@ class LudoGame:
         token_q = player.get_token_q_step_count()
         p_to_finish = 57 - token_p
         q_to_finish = 57 - token_q
+        move_p_to = token_p + dice_roll
+        move_q_to = token_q + dice_roll
 
         # TOKEN PRIORITY LOGIC
         # 1. If die roll is 6, try to let the token that still in home yard get out of yard (p first if both)
@@ -297,13 +293,31 @@ class LudoGame:
             elif dice_roll == q_to_finish:
                 return 'q'
 
+
+            # if (self.get_player_by_position(player.get_space_name(token_p + dice_roll)) is not None and
+            #         token_p != -1):
+            #     return 'p'
+            # elif (self.get_player_by_position(player.get_space_name(token_q + dice_roll)) is not None and
+            #         token_q != -1):
+            #     return 'q'
             # 3. If one token can move and kick out an opponent token, then move that token
-            if (self.get_player_by_position(player.get_space_name(token_p + dice_roll)) is not None and
-                    token_p != -1):
-                return 'p'
-            elif (self.get_player_by_position(player.get_space_name(token_q + dice_roll)) is not None and
-                    token_q != -1):
-                return 'q'
+
+            for active_player in self._active_players.values():
+                if active_player is player:
+                    continue
+                else:
+                    opponent_p = active_player.get_token('p')
+                    opponent_q = active_player.get_token('q')
+                    opp_p_homerow = active_player.is_homerow('p')
+                    opp_q_homerow = active_player.is_homerow('q')
+                    if move_p_to == opponent_p and not opp_p_homerow:
+                        return 'p'
+                    elif move_p_to == opponent_q and not opp_q_homerow:
+                        return 'p'
+                    elif move_q_to == opponent_p and not opp_p_homerow:
+                        return 'q'
+                    elif move_q_to == opponent_q and not opp_q_homerow:
+                        return 'q'
 
             # 4. Move the token that is further away from the finishing square
             if p_to_finish > q_to_finish or token_q == -1:
@@ -319,10 +333,15 @@ class DuplicatePlayerError(Exception):
 
 def main():
     players = ['A', 'B']
-    turns = [('A', 6), ('A', 5), ('A', 5), ('A', 5), ('A', 5), ('A', 5), ('A', 5), ('A', 5), ('A', 5), ('A', 5), ('A', 5), ('A', 5), # 5 x 11 = 55 = A5
-                ('B', 6), ('B', 4), ('B', 4), ('B', 4), ('B', 4), ('B', 4), ('B', 4), ('B', 4), ('B', 4), ('B', 4), ('B', 4), ('B', 1)] # 4 x 10 = 40 + 15 = 55
+    turns = [('A', 6), ('A', 4), ('A', 5), ('A', 4), ('B', 6), ('B', 4), ('B', 1), ('B', 2), ('A', 6), ('A', 4), ('A', 6), ('A', 3), ('A', 5), ('A', 1), ('A', 5), ('A', 4)]
     game = LudoGame()
-    print(game.play_game(players, turns))
+    current_tokens_space = game.play_game(players, turns)
+    # player_A = game.get_player_by_position('A')
+    # print(player_A.get_completed())
+    # print(player_A.get_token_p_step_count())
+    # print(current_tokens_space)
+    player_B = game.get_player_by_position('B')
+    print(player_B.get_space_name(55))
 
 if __name__ == '__main__':
     main()
