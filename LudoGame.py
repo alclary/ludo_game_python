@@ -194,33 +194,6 @@ class LudoGame:
 
         self.check_finished()
 
-    # def handle_collision(self, initiator, current_pos):
-    #     collision = {
-    #         'player': None,
-    #         'token': ""
-    #     }
-
-    #     for player in self._active_players.values():
-    #         if player.get_token_p_step_count() == current_pos:
-    #             collision['token'] = 'p'
-    #             if player is initiator:
-    #                 collision['player'] = initiator
-    #             else:
-    #                 collision['player'] = player
-    #         elif player.get_token_q_step_count() == current_pos:
-    #             collision['token'] = 'q'
-    #             if player is initiator:
-    #                 collision['player'] = initiator
-    #             else:
-    #                 collision['player'] = player
-
-    #     if collision['player'] is initiator: # If player collides with own token, stack
-    #         initiator.set_stacked(True)
-    #     elif collision['player'] is not None: # If player collides with opponent token, kick it back
-    #         collision['player'].set_token(collision['token'], -1)
-    #         if collision['player'].is_stacked() is True:
-    #             collision['player'].set_stacked(False)
-    #             collision['player'].set_token(self.other_token(collision['token']), -1)
     def handle_stack(self, initiator, token, new_pos):
         if initiator.get_token(self.other_token(token)) == new_pos:
             initiator.set_stacked(True)
@@ -250,8 +223,12 @@ class LudoGame:
 
     def check_finished(self):
         for player in self._active_players.values():
-            if (player.get_token_p_step_count() == 57 and
-                player.get_token_q_step_count() == 57):
+            end = player.get_end()
+            finish = end + 7
+            if (player.get_token_p_step_count() == finish and
+                player.is_homerow('p') and
+                player.get_token_q_step_count() == finish and
+                player.is_homerow('q')):
                 player.set_state('FINISHED')
 
     def play_game(self, player_list, turns_list):
@@ -277,7 +254,7 @@ class LudoGame:
                 player.get_state() == 'PLAYING'):
                 token = self.token_to_move(player, roll)
                 self.move_token(player, token, roll)
-                print(player_letter + " - " + token + ': ' + str(player.get_token(token)))
+                print(player_letter + " - " + token + ': ' + str(player.get_token(token)))  # TODO Remove DEBUG print log
 
         current_board = []
 
@@ -286,11 +263,6 @@ class LudoGame:
             current_board.append(player.get_space_name(player.get_token_q_step_count()))
 
         return current_board
-
-    def generate_turn_order(self, turn_list):
-        order_list = []
-
-
 
     def player_create_validate(self, player_list):
         try:
