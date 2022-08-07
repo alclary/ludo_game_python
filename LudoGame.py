@@ -85,18 +85,21 @@ class Player:
         # takes as a parameter the total steps of the token and returns the name of the space the
         # token has landed on on the board as a string. It should be able to return the home yard
         # current_pos (‘H’) and the ready to go current_pos (‘R’) as well.
+        relative_range = range(self._start, self._start + 50)
+        homerow = range(self._end + 1, self._end + 6)
+        finish = self._end + 7
+
         if total_steps == -1:
             return 'H'
         elif total_steps == 0:
             return 'R'
-        elif total_steps <= 50:
-            if total_steps + self._start <= 57:
-                return str((total_steps + self._start) - 1)
-            else:
-                return str((total_steps - (56 - self._start)) - 1)
-        elif total_steps <= 56:
+        elif total_steps in relative_range and total_steps < 56 - self._start:
+            return str((total_steps + self._start) - 1)
+        elif total_steps in relative_range and total_steps > 56 - self._start:
+            return str((total_steps - (56 - self._start)) - 1)
+        elif total_steps in homerow:
             return self._letter + str(total_steps - 50)
-        elif total_steps == 57:
+        elif total_steps == finish:
             return 'F'
 
 class LudoGame:
