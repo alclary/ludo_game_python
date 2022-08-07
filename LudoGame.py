@@ -228,13 +228,17 @@ class LudoGame:
 
     def handle_kick(self, initiator, new_pos):
         for player in self._active_players.values():
-            if player is not initiator and player.get_token('p') == new_pos:
+            if (player is not initiator and
+                    player.get_token('p') == new_pos and
+                    not player.is_homerow('p')):
                 if player.is_stacked():
                     player.set_token('p', -1)
                     player.set_token('q', -1)
                 else:
                     player.set_token('p', -1)
-            elif player is not initiator and player.get_token('q') == new_pos:
+            elif (player is not initiator and
+                    player.get_token('q') == new_pos and
+                    not player.is_homerow('q')):
                 player.set_token('q', -1)
         return
 
