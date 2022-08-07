@@ -175,11 +175,11 @@ class LudoGame:
         elif current_pos + steps in range(end + 1, end + 6):
             new_pos = current_pos + steps
             if player.is_stacked():
-                player.set_homerow(token, True)
                 player.set_token(self.other_token(token), new_pos)
             else:
                 self.handle_stack(player, token, new_pos)
 
+            player.set_homerow(token, True)
             player.set_token(token, new_pos)
 
         else:
@@ -254,7 +254,8 @@ class LudoGame:
                 player.get_state() == 'PLAYING'):
                 token = self.token_to_move(player, roll)
                 self.move_token(player, token, roll)
-                print(player_letter + " - " + token + ': ' + str(player.get_token(token)))  # TODO Remove DEBUG print log
+                print(player_letter + " - " + token + ': ' + str(player.get_token(token)) + ", "
+                    + self.other_token(token) + ": " + str(player.get_token(self.other_token(token))))  # TODO Remove DEBUG print log
 
         current_board = []
 
@@ -329,15 +330,10 @@ class DuplicatePlayerError(Exception):
 
 def main():
     players = ['A', 'B']
-    turns = [('A', 6), ('A', 4), ('A', 5), ('A', 4), ('B', 6), ('B', 4), ('B', 1), ('B', 2), ('A', 6), ('A', 4), ('A', 6), ('A', 3), ('A', 5), ('A', 1), ('A', 5), ('A', 4)]
+    turns = [('A', 6), ('A', 5), ('A', 5), ('A', 5), ('A', 5), ('A', 5), ('A', 5), ('A', 5), ('A', 5), ('A', 5), ('A', 5), ('A', 5), # 5 x 11 = 55 = A5
+                ('B', 6), ('B', 4), ('B', 4), ('B', 4), ('B', 4), ('B', 4), ('B', 4), ('B', 4), ('B', 4), ('B', 4), ('B', 4), ('B', 1)] # 4 x 10 = 40 + 15 = 55
     game = LudoGame()
-    current_tokens_space = game.play_game(players, turns)
-    player_A = game.get_player_by_position('A')
-    print(player_A.get_completed())
-    print(player_A.get_token_p_step_count())
-    print(current_tokens_space)
-    player_B = game.get_player_by_position('B')
-    print(player_B.get_space_name(55))
+    print(game.play_game(players, turns))
 
 if __name__ == '__main__':
     main()
