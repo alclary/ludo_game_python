@@ -176,7 +176,7 @@ class Player:
         elif total_steps in homerow:
             return self._letter + str(total_steps - 50)
         elif total_steps == finish:
-            return 'F'
+            return 'E'
 
 class LudoGame:
     """represents the game as played"""
