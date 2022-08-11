@@ -176,7 +176,7 @@ class Player:
                 return str(total_steps)
             elif self._letter in ['B','C','D']:
                 if total_steps + self._start - 1 in pre_range:
-                    return total_steps + self._start - 1
+                    return str(total_steps + self._start - 1)
                 else:
                     return str((total_steps - (56 - self._start)) - 1)
 
