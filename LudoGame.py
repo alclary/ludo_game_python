@@ -161,9 +161,9 @@ class Player:
         Returns:
             string: letter or number (as string) designation of board space
         """
-        pre_range = range(self._start, 56)
-        post_range = range(1, self._end)
-        homerow = range(self._end + 1, self._end + 6)
+        pre_range = range(self._start, 57) # [start through 56]
+        post_range = range(1, self._end+1)
+        homerow = range(self._end + 1, self._end + 7)
         finish = self._end + 7
 
         if total_steps == -1:
@@ -172,13 +172,13 @@ class Player:
             return 'R'
         elif total_steps == 57:
             return 'E'
-        elif total_steps in range(51, 56):
+        elif total_steps in range(51, 57):
             return self._letter + str(total_steps - 50)
         else:
             if self._letter == 'A':
                 return str(total_steps)
             elif self._letter in ['B','C','D']:
-                if total_steps + self._start in pre_range:
+                if total_steps + self._start - 1 in pre_range:
                     return total_steps + self._start - 1
                 else:
                     return str((total_steps - (56 - self._start)) - 1)
@@ -260,7 +260,7 @@ class LudoGame:
         #     else:
         #         player.set_token(token, new_pos)
 
-        elif current_pos in range(51, 56):
+        elif current_pos in range(51, 57):
             new_pos = None
             if current_pos + steps == 57:
                 new_pos = 57
@@ -285,7 +285,7 @@ class LudoGame:
         #     player.set_homerow(token, True)
         #     player.set_token(token, new_pos)
 
-        elif current_pos + steps in range(51, 56):
+        elif current_pos + steps in range(51, 57):
             new_pos = current_pos + steps
             if player.is_stacked():
                 player.set_token(self.other_token(token), new_pos)
@@ -518,12 +518,34 @@ class DuplicatePlayerError(Exception):
     pass
 
 def main():
-    players = ['A', 'B']
+    players = ['A', 'B', 'C','D']
     turns = [('A', 6), ('A', 4), ('A', 5), ('A', 4), ('B', 6), ('B', 4), ('B', 1), ('B', 2), ('A', 6), ('A', 4),
     ('A', 6), ('A', 3), ('A', 5), ('A', 1), ('A', 5), ('A', 4),]
     game = LudoGame()
     current_tokens_space = game.play_game(players, turns)
     print(current_tokens_space)
+
+    playerA = game.get_player_by_position('A')
+    playerB = game.get_player_by_position('B')
+    playerC = game.get_player_by_position('C')
+    playerD = game.get_player_by_position('D')
+
+
+    print(playerA.get_space_name(50))
+    print(playerA.get_space_name(51))
+
+    print(playerB.get_space_name(50))
+    print(playerB.get_space_name(51))
+
+    print('A\t'+'B\t'+'C\t'+'D\t')
+
+    for i in range(-1,58):
+        print(playerA.get_space_name(i),'\t',
+                playerB.get_space_name(i),'\t',
+                playerC.get_space_name(i),'\t',
+                playerD.get_space_name(i),'\t'
+        )
+
 
 
 if __name__ == '__main__':
