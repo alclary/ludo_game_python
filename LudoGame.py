@@ -352,26 +352,15 @@ class LudoGame:
 
         self.player_create_validate(player_list)
 
-        rollnumber = 0 # TODO DEBUG REMOVE
-
         for turn in turns_list:
             player_letter = turn[0]
             player = self._active_players[player_letter]
-            otherplayer = self._active_players['C']  # TODO DEBUG CODE REMOVE
             roll = turn[1]
 
             if (player in self._active_players.values() and
                 player.get_state() == 'PLAYING'):
                 token = self.token_to_move(player, roll)
                 self.move_token(player, token, roll)
-                # print(player_letter + " - " + token + ': ' + str(player.get_token(token)) + ", "
-                #     + self.other_token(token) + ": " + str(player.get_token(self.other_token(token))))  # TODO Remove DEBUG print log
-
-                print("Roll:{0}     Ap: {1}      Aq: {2}       Cp: {3}     Cq: {4}".format(roll,
-                    self._active_players['A'].get_space_name(self._active_players['A'].get_token('p')), self._active_players['A'].get_space_name(self._active_players['A'].get_token('q')),
-                    otherplayer.get_space_name(otherplayer.get_token('p')),otherplayer.get_space_name(otherplayer.get_token('q')))
-                    )
-            rollnumber += 1 # TODO DEBUG REMOVE
 
         current_board = []
 
@@ -481,36 +470,7 @@ class DuplicatePlayerError(Exception):
     pass
 
 def main():
-    players = ['A','C']
-    turns = [('A', 6),('A', 4),('A', 4),('A', 4),('A', 5),('A', 6),('A', 4),('A', 6),('A', 4),('A',
-    6),('A', 6),('A', 6),('A', 4),('A', 6),('A', 6),('C', 6),('C', 4)]
-    ['33', 'H', '32', 'H']
-    game = LudoGame()
-    current_tokens_space = game.play_game(players, turns)
-    print(current_tokens_space)
-
-    # playerA = game.get_player_by_position('A')
-    # playerB = game.get_player_by_position('B')
-    # playerC = game.get_player_by_position('C')
-    # playerD = game.get_player_by_position('D')
-
-
-    # print(playerA.get_space_name(50))
-    # print(playerA.get_space_name(51))
-
-    # print(playerB.get_space_name(50))
-    # print(playerB.get_space_name(51))
-
-    # print('A\t'+'B\t'+'C\t'+'D\t')
-
-    # for i in range(-1,58):
-    #     print(playerA.get_space_name(i),'\t',
-    #             playerB.get_space_name(i),'\t',
-    #             playerC.get_space_name(i),'\t',
-    #             playerD.get_space_name(i),'\t'
-    #     )
-
-
+    pass
 
 if __name__ == '__main__':
     main()
