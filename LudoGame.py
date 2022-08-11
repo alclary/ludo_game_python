@@ -216,17 +216,18 @@ class LudoGame:
         """
         current_pos = player.get_token(token)
 
-        if current_pos == -1:
+        if current_pos == -1:                                   # move token out of homeyard
             if steps == 6:
                 player.set_token(token, 0)
 
-        elif current_pos == 0:
+        elif current_pos == 0:                                  # move token from ready space
             new_pos = steps
+
             self.handle_kick(player, new_pos)
             self.handle_stack(player, token, new_pos)
             player.set_token(token, new_pos)
 
-        elif current_pos in range(51, 57):
+        elif current_pos in range(51, 57):                      # move token within homerow
             new_pos = None
             if current_pos + steps == 57:
                 new_pos = 57
@@ -241,7 +242,7 @@ class LudoGame:
             else:
                 player.set_token(token, new_pos)
 
-        elif current_pos + steps in range(51, 57):
+        elif current_pos + steps in range(51, 57):              # move token that will go to homerow
             new_pos = current_pos + steps
             if player.is_stacked():
                 player.set_token(self.other_token(token), new_pos)
@@ -251,7 +252,7 @@ class LudoGame:
             player.set_homerow(token, True)
             player.set_token(token, new_pos)
 
-        else:
+        else:                                                   # move all other tokens (1 to 45 (i.e. 51 - roll of 6))
             new_pos = current_pos + steps
 
             self.handle_kick(player, new_pos)
@@ -287,21 +288,27 @@ class LudoGame:
         Args:
             initiator (Player): the player that is initiating the move
             new_pos (int): the new position the token will be moved tos
+
+        Returns:
+            Bool: True if kick occured, else False
         """
         for player in self._active_players.values():
             if (player is not initiator and
-                    player.get_token('p') == new_pos and
+                    player.get_space_name(player.get_token('p')) == initiator.get_space_name(new_pos) and
                     not player.is_homerow('p')):
                 if player.is_stacked():
                     player.set_token('p', -1)
                     player.set_token('q', -1)
+                    return True
                 else:
                     player.set_token('p', -1)
+                    return True
             elif (player is not initiator and
-                    player.get_token('q') == new_pos and
+                    player.get_space_name(player.get_token('q')) == initiator.get_space_name(new_pos) and
                     not player.is_homerow('q')):
                 player.set_token('q', -1)
-        return
+                return True
+        return False
 
     def other_token(self, token):
         """helper function to quickly indicate opposite of given token
@@ -345,17 +352,26 @@ class LudoGame:
 
         self.player_create_validate(player_list)
 
+        rollnumber = 0 # TODO DEBUG REMOVE
+
         for turn in turns_list:
             player_letter = turn[0]
             player = self._active_players[player_letter]
+            otherplayer = self._active_players['C']  # TODO DEBUG CODE REMOVE
             roll = turn[1]
 
             if (player in self._active_players.values() and
                 player.get_state() == 'PLAYING'):
                 token = self.token_to_move(player, roll)
                 self.move_token(player, token, roll)
-                print(player_letter + " - " + token + ': ' + str(player.get_token(token)) + ", "
-                    + self.other_token(token) + ": " + str(player.get_token(self.other_token(token))))  # TODO Remove DEBUG print log
+                # print(player_letter + " - " + token + ': ' + str(player.get_token(token)) + ", "
+                #     + self.other_token(token) + ": " + str(player.get_token(self.other_token(token))))  # TODO Remove DEBUG print log
+
+                print("Roll:{0}     Ap: {1}      Aq: {2}       Cp: {3}     Cq: {4}".format(roll,
+                    self._active_players['A'].get_space_name(self._active_players['A'].get_token('p')), self._active_players['A'].get_space_name(self._active_players['A'].get_token('q')),
+                    otherplayer.get_space_name(otherplayer.get_token('p')),otherplayer.get_space_name(otherplayer.get_token('q')))
+                    )
+            rollnumber += 1 # TODO DEBUG REMOVE
 
         current_board = []
 
@@ -408,8 +424,8 @@ class LudoGame:
         token_q = player.get_token_q_step_count()
         p_to_finish = 57 - token_p
         q_to_finish = 57 - token_q
-        move_p_to = token_p + dice_roll
-        move_q_to = token_q + dice_roll
+        move_p_to_space = player.get_space_name(token_p + dice_roll)
+        move_q_to_space = player.get_space_name(token_q + dice_roll)
 
         # TOKEN PRIORITY LOGIC
 
@@ -437,17 +453,17 @@ class LudoGame:
                 if active_player is player:
                     continue
                 else:
-                    opponent_p = active_player.get_token('p')
-                    opponent_q = active_player.get_token('q')
+                    opponent_p = active_player.get_space_name(active_player.get_token('p'))
+                    opponent_q = active_player.get_space_name(active_player.get_token('q'))
                     opp_p_homerow = active_player.is_homerow('p')
                     opp_q_homerow = active_player.is_homerow('q')
-                    if move_p_to == opponent_p and not opp_p_homerow:
+                    if move_p_to_space == opponent_p and not opp_p_homerow:
                         return 'p'
-                    elif move_p_to == opponent_q and not opp_q_homerow:
+                    elif move_p_to_space == opponent_q and not opp_q_homerow:
                         return 'p'
-                    elif move_q_to == opponent_p and not opp_p_homerow:
+                    elif move_q_to_space == opponent_p and not opp_p_homerow:
                         return 'q'
-                    elif move_q_to == opponent_q and not opp_q_homerow:
+                    elif move_q_to_space == opponent_q and not opp_q_homerow:
                         return 'q'
 
         # 4. Move the token that is further away from the finishing square
@@ -465,33 +481,34 @@ class DuplicatePlayerError(Exception):
     pass
 
 def main():
-    players = ['A', 'B', 'C','D']
-    turns = [('A', 6), ('A', 4), ('A', 5), ('A', 4), ('B', 6), ('B', 4), ('B', 1), ('B', 2), ('A', 6), ('A', 4),
-    ('A', 6), ('A', 3), ('A', 5), ('A', 1), ('A', 5), ('A', 4),]
+    players = ['A','C']
+    turns = [('A', 6),('A', 4),('A', 4),('A', 4),('A', 5),('A', 6),('A', 4),('A', 6),('A', 4),('A',
+    6),('A', 6),('A', 6),('A', 4),('A', 6),('A', 6),('C', 6),('C', 4)]
+    ['33', 'H', '32', 'H']
     game = LudoGame()
     current_tokens_space = game.play_game(players, turns)
     print(current_tokens_space)
 
-    playerA = game.get_player_by_position('A')
-    playerB = game.get_player_by_position('B')
-    playerC = game.get_player_by_position('C')
-    playerD = game.get_player_by_position('D')
+    # playerA = game.get_player_by_position('A')
+    # playerB = game.get_player_by_position('B')
+    # playerC = game.get_player_by_position('C')
+    # playerD = game.get_player_by_position('D')
 
 
-    print(playerA.get_space_name(50))
-    print(playerA.get_space_name(51))
+    # print(playerA.get_space_name(50))
+    # print(playerA.get_space_name(51))
 
-    print(playerB.get_space_name(50))
-    print(playerB.get_space_name(51))
+    # print(playerB.get_space_name(50))
+    # print(playerB.get_space_name(51))
 
-    print('A\t'+'B\t'+'C\t'+'D\t')
+    # print('A\t'+'B\t'+'C\t'+'D\t')
 
-    for i in range(-1,58):
-        print(playerA.get_space_name(i),'\t',
-                playerB.get_space_name(i),'\t',
-                playerC.get_space_name(i),'\t',
-                playerD.get_space_name(i),'\t'
-        )
+    # for i in range(-1,58):
+    #     print(playerA.get_space_name(i),'\t',
+    #             playerB.get_space_name(i),'\t',
+    #             playerC.get_space_name(i),'\t',
+    #             playerD.get_space_name(i),'\t'
+    #     )
 
 
 
