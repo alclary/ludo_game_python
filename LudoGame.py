@@ -396,7 +396,7 @@ class LudoGame:
 
     def token_to_move(self, player, dice_roll):
         """decision algorithm, based on a priority ruleset, to decide which of given player's
-            token should be moved next (e.g. 'p' or 'q').
+            tokens should be moved next (e.g. 'p' or 'q').
 
         Args:
             player (Player): player whose token will be evaluated and moved
@@ -465,16 +465,7 @@ class DuplicatePlayerError(Exception):
     pass
 
 def main():
-    players = ['A', 'B']
-    turns = [('A', 6), ('A', 4), ('A', 5), ('A', 4), ('B', 6), ('B', 4), ('B', 1), ('B', 2), ('A', 6), ('A', 4), ('A', 6), ('A', 3), ('A', 5), ('A', 1), ('A', 5), ('A', 4)]
-    game = LudoGame()
-    current_tokens_space = game.play_game(players, turns)
-    player_A = game.get_player_by_position('A')
-    print(player_A.get_completed())
-    print(player_A.get_token_p_step_count())
-    print(current_tokens_space)
-    player_B = game.get_player_by_position('B')
-    print(player_B.get_space_name(55))
+    pass
 
 if __name__ == '__main__':
     main()
