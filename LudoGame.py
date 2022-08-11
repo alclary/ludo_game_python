@@ -161,7 +161,8 @@ class Player:
         Returns:
             string: letter or number (as string) designation of board space
         """
-        relative_range = range(self._start, self._start + 50)
+        pre_range = range(self._start, 56)
+        post_range = range(1, self._end)
         homerow = range(self._end + 1, self._end + 6)
         finish = self._end + 7
 
@@ -169,14 +170,26 @@ class Player:
             return 'H'
         elif total_steps == 0:
             return 'R'
-        elif total_steps in relative_range and total_steps < 56 - self._start:
-            return str((total_steps + self._start) - 1)
-        elif total_steps in relative_range and total_steps > 56 - self._start:
-            return str((total_steps - (56 - self._start)) - 1)
+        # else:
+
+        #     if self._letter == 'A':
+        #         if
+        #     elif self._letter == 'B':
+        #     elif self._letter == 'C':
+        #     elif self._letter == 'D':
+
+
+        # elif total_steps in relative_range and total_steps < 56 - self._start:
+        #     return str((total_steps + self._start) - 1)
+        # elif total_steps in relative_range and total_steps > 56 - self._start:
+        #     return str((total_steps - (56 - self._start)) - 1)
+        elif total_steps in pre_range or total_steps in post_range:
+            return str(total_steps)
         elif total_steps in homerow:
             return self._letter + str(total_steps - 50)
         elif total_steps == finish:
             return 'E'
+
 
 class LudoGame:
     """represents the game as played"""
@@ -253,7 +266,11 @@ class LudoGame:
             player.set_token(token, new_pos)
 
         else:
-            new_pos = current_pos + steps
+            if current_pos + steps <= 56:                   # handle 'passing go' reset of space
+                new_pos = current_pos + steps
+            elif current_pos + steps > 56:
+                new_pos = (current_pos + steps) - 56
+
             self.handle_kick(player, new_pos)
             if player.is_stacked() is True:
                 player.set_token(token, new_pos)
@@ -465,7 +482,13 @@ class DuplicatePlayerError(Exception):
     pass
 
 def main():
-    pass
+    players = ['A', 'B']
+    turns = [('A', 6), ('A', 4), ('A', 5), ('A', 4), ('B', 6), ('B', 4), ('B', 1), ('B', 2), ('A', 6), ('A', 4),
+    ('A', 6), ('A', 3), ('A', 5), ('A', 1), ('A', 5), ('A', 4)]
+    game = LudoGame()
+    current_tokens_space = game.play_game(players, turns)
+    print(current_tokens_space)
+
 
 if __name__ == '__main__':
     main()
