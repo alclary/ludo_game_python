@@ -170,25 +170,30 @@ class Player:
             return 'H'
         elif total_steps == 0:
             return 'R'
-        # else:
-
-        #     if self._letter == 'A':
-        #         if
-        #     elif self._letter == 'B':
-        #     elif self._letter == 'C':
-        #     elif self._letter == 'D':
+        elif total_steps == 57:
+            return 'E'
+        elif total_steps in range(51, 56):
+            return self._letter + str(total_steps - 50)
+        else:
+            if self._letter == 'A':
+                return str(total_steps)
+            elif self._letter in ['B','C','D']:
+                if total_steps + self._start in pre_range:
+                    return total_steps + self._start - 1
+                else:
+                    return str((total_steps - (56 - self._start)) - 1)
 
 
         # elif total_steps in relative_range and total_steps < 56 - self._start:
         #     return str((total_steps + self._start) - 1)
         # elif total_steps in relative_range and total_steps > 56 - self._start:
         #     return str((total_steps - (56 - self._start)) - 1)
-        elif total_steps in pre_range or total_steps in post_range:
-            return str(total_steps)
-        elif total_steps in homerow:
-            return self._letter + str(total_steps - 50)
-        elif total_steps == finish:
-            return 'E'
+        # elif total_steps in pre_range or total_steps in post_range:
+        #     return str(total_steps)
+        # elif total_steps in homerow:
+        #     return self._letter + str(total_steps - 50)
+        # elif total_steps == finish:
+        #     return 'E'
 
 
 class LudoGame:
@@ -226,28 +231,43 @@ class LudoGame:
             steps (int): number of steps to be moved
         """
         current_pos = player.get_token(token)
-        start = player.get_start()
-        end = player.get_end()
-        finish = end + 7
+        #start = player.get_start()
+        #end = player.get_end()
+        #finish = end + 7
 
         if current_pos == -1:
             if steps == 6:
                 player.set_token(token, 0)
 
         elif current_pos == 0:
-            new_pos = (start + steps) - 1
+            new_pos = steps
             self.handle_kick(player, new_pos)
             self.handle_stack(player, token, new_pos)
             player.set_token(token, new_pos)
 
-        elif current_pos in range(end + 1, end + 6):
+        # elif current_pos in range(end + 1, end + 6):
+        #     new_pos = None
+        #     if current_pos + steps == finish:
+        #         new_pos = finish
+        #     elif current_pos + steps < finish:
+        #         new_pos = current_pos + steps
+        #     elif current_pos + steps > finish:
+        #         new_pos = (finish - (current_pos + steps)) + finish
+
+        #     if player.is_stacked():
+        #         player.set_token(token, new_pos)
+        #         player.set_token(self.other_token(token), new_pos)
+        #     else:
+        #         player.set_token(token, new_pos)
+
+        elif current_pos in range(51, 56):
             new_pos = None
-            if current_pos + steps == finish:
-                new_pos = finish
-            elif current_pos + steps < finish:
+            if current_pos + steps == 57:
+                new_pos = 57
+            elif current_pos + steps < 57:
                 new_pos = current_pos + steps
-            elif current_pos + steps > finish:
-                new_pos = (finish - (current_pos + steps)) + finish
+            elif current_pos + steps > 57:
+                new_pos = (57 - (current_pos + steps)) + 57
 
             if player.is_stacked():
                 player.set_token(token, new_pos)
@@ -255,7 +275,17 @@ class LudoGame:
             else:
                 player.set_token(token, new_pos)
 
-        elif current_pos + steps in range(end + 1, end + 6):
+        # elif current_pos + steps in range(end + 1, end + 6):
+        #     new_pos = current_pos + steps
+        #     if player.is_stacked():
+        #         player.set_token(self.other_token(token), new_pos)
+        #     else:
+        #         self.handle_stack(player, token, new_pos)
+
+        #     player.set_homerow(token, True)
+        #     player.set_token(token, new_pos)
+
+        elif current_pos + steps in range(51, 56):
             new_pos = current_pos + steps
             if player.is_stacked():
                 player.set_token(self.other_token(token), new_pos)
@@ -265,11 +295,19 @@ class LudoGame:
             player.set_homerow(token, True)
             player.set_token(token, new_pos)
 
+        # else:
+        #     new_pos = current_pos + steps
+
+        #     self.handle_kick(player, new_pos)
+        #     if player.is_stacked() is True:
+        #         player.set_token(token, new_pos)
+        #         player.set_token(self.other_token(token), new_pos)
+        #     else:
+        #         self.handle_stack(player, token, new_pos)
+        #         player.set_token(token, new_pos)
+
         else:
-            if current_pos + steps <= 56:                   # handle 'passing go' reset of space
-                new_pos = current_pos + steps
-            elif current_pos + steps > 56:
-                new_pos = (current_pos + steps) - 56
+            new_pos = current_pos + steps
 
             self.handle_kick(player, new_pos)
             if player.is_stacked() is True:
@@ -340,11 +378,9 @@ class LudoGame:
             update Player object's state to 'FINISHED'
         """
         for player in self._active_players.values():
-            end = player.get_end()
-            finish = end + 7
-            if (player.get_token_p_step_count() == finish and
+            if (player.get_token_p_step_count() == 57 and
                 player.is_homerow('p') and
-                player.get_token_q_step_count() == finish and
+                player.get_token_q_step_count() == 57 and
                 player.is_homerow('q')):
                 player.set_state('FINISHED')
 
@@ -484,7 +520,7 @@ class DuplicatePlayerError(Exception):
 def main():
     players = ['A', 'B']
     turns = [('A', 6), ('A', 4), ('A', 5), ('A', 4), ('B', 6), ('B', 4), ('B', 1), ('B', 2), ('A', 6), ('A', 4),
-    ('A', 6), ('A', 3), ('A', 5), ('A', 1), ('A', 5), ('A', 4)]
+    ('A', 6), ('A', 3), ('A', 5), ('A', 1), ('A', 5), ('A', 4),]
     game = LudoGame()
     current_tokens_space = game.play_game(players, turns)
     print(current_tokens_space)
