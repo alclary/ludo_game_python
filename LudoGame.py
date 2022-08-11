@@ -162,9 +162,6 @@ class Player:
             string: letter or number (as string) designation of board space
         """
         pre_range = range(self._start, 57) # [start through 56]
-        post_range = range(1, self._end+1)
-        homerow = range(self._end + 1, self._end + 7)
-        finish = self._end + 7
 
         if total_steps == -1:
             return 'H'
@@ -182,19 +179,6 @@ class Player:
                     return total_steps + self._start - 1
                 else:
                     return str((total_steps - (56 - self._start)) - 1)
-
-
-        # elif total_steps in relative_range and total_steps < 56 - self._start:
-        #     return str((total_steps + self._start) - 1)
-        # elif total_steps in relative_range and total_steps > 56 - self._start:
-        #     return str((total_steps - (56 - self._start)) - 1)
-        # elif total_steps in pre_range or total_steps in post_range:
-        #     return str(total_steps)
-        # elif total_steps in homerow:
-        #     return self._letter + str(total_steps - 50)
-        # elif total_steps == finish:
-        #     return 'E'
-
 
 class LudoGame:
     """represents the game as played"""
@@ -231,9 +215,6 @@ class LudoGame:
             steps (int): number of steps to be moved
         """
         current_pos = player.get_token(token)
-        #start = player.get_start()
-        #end = player.get_end()
-        #finish = end + 7
 
         if current_pos == -1:
             if steps == 6:
@@ -244,21 +225,6 @@ class LudoGame:
             self.handle_kick(player, new_pos)
             self.handle_stack(player, token, new_pos)
             player.set_token(token, new_pos)
-
-        # elif current_pos in range(end + 1, end + 6):
-        #     new_pos = None
-        #     if current_pos + steps == finish:
-        #         new_pos = finish
-        #     elif current_pos + steps < finish:
-        #         new_pos = current_pos + steps
-        #     elif current_pos + steps > finish:
-        #         new_pos = (finish - (current_pos + steps)) + finish
-
-        #     if player.is_stacked():
-        #         player.set_token(token, new_pos)
-        #         player.set_token(self.other_token(token), new_pos)
-        #     else:
-        #         player.set_token(token, new_pos)
 
         elif current_pos in range(51, 57):
             new_pos = None
@@ -275,16 +241,6 @@ class LudoGame:
             else:
                 player.set_token(token, new_pos)
 
-        # elif current_pos + steps in range(end + 1, end + 6):
-        #     new_pos = current_pos + steps
-        #     if player.is_stacked():
-        #         player.set_token(self.other_token(token), new_pos)
-        #     else:
-        #         self.handle_stack(player, token, new_pos)
-
-        #     player.set_homerow(token, True)
-        #     player.set_token(token, new_pos)
-
         elif current_pos + steps in range(51, 57):
             new_pos = current_pos + steps
             if player.is_stacked():
@@ -294,17 +250,6 @@ class LudoGame:
 
             player.set_homerow(token, True)
             player.set_token(token, new_pos)
-
-        # else:
-        #     new_pos = current_pos + steps
-
-        #     self.handle_kick(player, new_pos)
-        #     if player.is_stacked() is True:
-        #         player.set_token(token, new_pos)
-        #         player.set_token(self.other_token(token), new_pos)
-        #     else:
-        #         self.handle_stack(player, token, new_pos)
-        #         player.set_token(token, new_pos)
 
         else:
             new_pos = current_pos + steps
@@ -467,6 +412,7 @@ class LudoGame:
         move_q_to = token_q + dice_roll
 
         # TOKEN PRIORITY LOGIC
+
         # 1. If die roll is 6, try to let the token that still in home yard get out of yard (p first if both)
         if player.is_stacked() is True:
             return 'p'
@@ -477,6 +423,7 @@ class LudoGame:
                 return 'p'
             elif token_q == -1:
                 return 'q'
+
         # 2. If one token is already in the home square and the step number is exactly what is
         #   needed to reach the end square, let that token move and finish
         else:
